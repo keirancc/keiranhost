@@ -52,7 +52,7 @@ templates = Jinja2Templates(directory="templates")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://api.keiran.live/*", "http://localhost:8000", "https://keiran.live", "*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -61,7 +61,7 @@ app.add_middleware(
 UPLOAD_DIR = Path("uploads")
 CHUNK_DIR = Path("chunks")
 METADATA_FILE = Path("metadata.json")
-SITE_URL = "http://localhost:8000"
+SITE_URL = "https://api.keiran.live"
 MAX_FILE_SIZE = 1024 * 1024 * 1024  # 1GB
 ALLOWED_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.gif', '.mp4', '.webm', '.pdf'}
 

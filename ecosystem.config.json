@@ -1,0 +1,21 @@
+{
+  "apps": [
+    {
+      "name": "KeiranHost",
+      "script": "/home/keiran/keiranhost/node_modules/.bin/vite",
+      "args": "preview --host",
+      "cwd": "/home/keiran/keiranhost",
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "env_production": {
+        "NODE_ENV": "production"
+      },
+      "interpreter": "none",
+      "instances": 1,
+      "autorestart": true,
+      "watch": false,
+      "log_date_format": "YYYY-MM-DD HH:mm Z"
+    }
+  ]
+}
