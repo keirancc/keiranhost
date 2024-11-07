@@ -52,10 +52,16 @@ templates = Jinja2Templates(directory="templates")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://api.keiran.live/*", "http://localhost:8000", "https://keiran.live", "*"],
+    allow_origins=[
+        "https://keiran.live",
+        "http://localhost:3000",  # Development frontend
+        "http://localhost:5173",  # Vite default port
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "Accept"],
+    expose_headers=["Content-Disposition"],  # Useful for downloads
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
 
 UPLOAD_DIR = Path("uploads")

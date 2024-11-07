@@ -1,5 +1,4 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
-import { backOff } from 'exponential-backoff';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const MAX_RETRIES = 3;
@@ -24,26 +23,20 @@ export interface ApiError extends Error {
 export const api = axios.create({
   baseURL: API_URL,
   timeout: 50000,
-  // CORS configuration
-  withCredentials: true, // Include credentials if you're using cookies/authentication
+  withCredentials: true,  // Include if you're using cookies/sessions
   headers: {
-    'Content-Type': 'application/json',
     'Accept': 'application/json',
   }
-});
-
-// Request interceptor for adding CORS headers
-api.interceptors.request.use((config) => {
-  config.headers['Access-Control-Allow-Origin'] = '*';
-  config.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
-  config.headers['Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization';
-  return config;
 });
 
 // Response interceptor for handling errors
 api.interceptors.response.use(
   response => response,
   async (error: AxiosError) => {
+    if (error.response?.status === 0 || error.code === 'ERR_NETWORK') {
+      throw new Error('Network error - Please check your connection');
+    }
+    
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
     
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -71,17 +64,7 @@ export const getFullShareUrl = (path: string): string => {
   return `${API_URL}${path}`;
 };
 
-// Retry wrapper
-const withRetry = async <T>(operation: () => Promise<T>): Promise<T> => {
-  return backOff(() => operation(), {
-    numOfAttempts: MAX_RETRIES,
-    startingDelay: 1000,
-    timeMultiple: 2,
-    jitter: 'full'
-  });
-};
-
-// API functions
+// Upload functions with retry logic
 export const uploadChunk = async (
   chunk: Blob,
   fileName: string,
@@ -97,7 +80,10 @@ export const uploadChunk = async (
   formData.append('chunkIndex', chunkIndex.toString());
   formData.append('totalChunks', totalChunks.toString());
 
-  return withRetry(async () => {
+  let retries = 0;
+  const maxRetries = MAX_RETRIES;
+
+  while (retries < maxRetries) {
     try {
       const { data } = await api.post<UploadChunkResponse>('/upload/chunk', formData, {
         headers: {
@@ -112,19 +98,26 @@ export const uploadChunk = async (
       });
       return data;
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw handleApiError(error);
+      retries++;
+      if (retries === maxRetries || !(error instanceof Error)) {
+        throw error;
       }
-      throw error;
+      // Exponential backoff
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, retries) * 1000));
     }
-  });
+  }
+
+  throw new Error('Maximum retries exceeded');
 };
 
 export const completeUpload = async (
   fileName: string,
   totalChunks: number
 ): Promise<CompleteUploadResponse> => {
-  return withRetry(async () => {
+  let retries = 0;
+  const maxRetries = MAX_RETRIES;
+
+  while (retries < maxRetries) {
     try {
       const { data } = await api.post<CompleteUploadResponse>('/upload/complete', {
         fileName,
@@ -135,10 +128,24 @@ export const completeUpload = async (
         shareLink: getFullShareUrl(data.shareLink),
       };
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw handleApiError(error);
+      retries++;
+      if (retries === maxRetries || !(error instanceof Error)) {
+        throw error;
       }
-      throw error;
+      // Exponential backoff
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, retries) * 1000));
     }
-  });
+  }
+
+  throw new Error('Maximum retries exceeded');
+};
+
+// Export a function to check API health
+export const checkApiHealth = async (): Promise<boolean> => {
+  try {
+    await api.get('/health');
+    return true;
+  } catch {
+    return false;
+  }
 };
