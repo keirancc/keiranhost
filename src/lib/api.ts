@@ -1,5 +1,4 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
-import cors from 'cors';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const MAX_RETRIES = 3;
@@ -20,24 +19,20 @@ export interface ApiError extends Error {
   code?: string;
 }
 
-app.use(cors({
-  origin: 'https://api.keiran.live',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
-  credentials: true
-}));
-
-// API client configuration
 export const api = axios.create({
   baseURL: API_URL,
   timeout: 50000,
-  withCredentials: true,  // Include if you're using cookies/sessions
+  withCredentials: true,
   headers: {
     'Accept': 'application/json',
+    'Origin': 'https://keiran.live',
+    'Access-Control-Allow-Origin': 'https://api.keiran.live',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+    'Access-Control-Allow-Credentials': 'true'
   }
 });
 
-// Response interceptor for handling errors
 api.interceptors.response.use(
   response => response,
   async (error: AxiosError) => {
@@ -49,7 +44,6 @@ api.interceptors.response.use(
     
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      // Add token refresh logic here if needed
       return api(originalRequest);
     }
     
@@ -57,7 +51,6 @@ api.interceptors.response.use(
   }
 );
 
-// Error handling
 const handleApiError = (error: AxiosError): ApiError => {
   const apiError: ApiError = new Error(
     error.response?.data?.detail || error.message || 'An unknown error occurred'
@@ -67,12 +60,10 @@ const handleApiError = (error: AxiosError): ApiError => {
   return apiError;
 };
 
-// Utility functions
 export const getFullShareUrl = (path: string): string => {
   return `${API_URL}${path}`;
 };
 
-// Upload functions with retry logic
 export const uploadChunk = async (
   chunk: Blob,
   fileName: string,
@@ -140,7 +131,6 @@ export const completeUpload = async (
       if (retries === maxRetries || !(error instanceof Error)) {
         throw error;
       }
-      // Exponential backoff
       await new Promise(resolve => setTimeout(resolve, Math.pow(2, retries) * 1000));
     }
   }
@@ -148,7 +138,6 @@ export const completeUpload = async (
   throw new Error('Maximum retries exceeded');
 };
 
-// Export a function to check API health
 export const checkApiHealth = async (): Promise<boolean> => {
   try {
     await api.get('/health');
