@@ -25,4 +25,7 @@ dist-ssr
 *.sw?
 
 __pycache__/*
+*/__pycache__/*
+*__pycache__*
+backend/*__pycache__*
 .env
