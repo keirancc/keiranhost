@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
+import cors from 'cors';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const MAX_RETRIES = 3;
@@ -18,6 +19,13 @@ export interface ApiError extends Error {
   status?: number;
   code?: string;
 }
+
+app.use(cors({
+  origin: 'https://api.keiran.live',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+  credentials: true
+}));
 
 // API client configuration
 export const api = axios.create({
