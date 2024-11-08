@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI):
     cleanup_task.cancel()
     await cleanup_task
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, redirect_slashes=False)
 templates = Jinja2Templates(directory="templates")
 
 app.add_middleware(
@@ -125,6 +125,11 @@ Uploaded: {metadata['upload_time'].strftime('%Y-%m-%d %H:%M:%S')}" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     """
+
+
+@app.get("/")
+async def index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.post("/upload/chunk")
