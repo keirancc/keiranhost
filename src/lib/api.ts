@@ -22,14 +22,8 @@ export interface ApiError extends Error {
 export const api = axios.create({
   baseURL: API_URL,
   timeout: 50000,
-  withCredentials: true,
   headers: {
     'Accept': 'application/json',
-    'Origin': 'https://keiran.live',
-    'Access-Control-Allow-Origin': 'https://api.keiran.live',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
-    'Access-Control-Allow-Credentials': 'true'
   }
 });
 

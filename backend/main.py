@@ -54,14 +54,15 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://keiran.live",
-        "http://localhost:3000",  # Development frontend
-        "http://localhost:5173",  # Vite default port
+        "https://api.keiran.live",
+        "http://localhost:8000",
+        "http://localhost:4173",
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization", "Accept"],
-    expose_headers=["Content-Disposition"],  # Useful for downloads
-    max_age=3600,  # Cache preflight requests for 1 hour
+    expose_headers=["Content-Disposition"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+    max_age=3600,
 )
 
 UPLOAD_DIR = Path("uploads")
