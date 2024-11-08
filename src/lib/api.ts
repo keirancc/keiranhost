@@ -79,9 +79,6 @@ export const uploadChunk = async (
   while (retries < maxRetries) {
     try {
       const { data } = await api.post<UploadChunkResponse>('/upload/chunk', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
         onUploadProgress: (progressEvent) => {
           if (onProgress && progressEvent.total) {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);

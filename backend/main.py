@@ -119,7 +119,7 @@ def create_og_tags(file_id: str, metadata: dict) -> str:
     <meta property="og:title" content="{metadata['original_name']} - KeiranHost" />
     <meta property="og:description" content="File: {metadata['original_name']}
 Size: {metadata['human_size']}
-Uploaded: {metadata['upload_time'].strftime('%Y-%m-%d %H:%M:%S')}" />
+Uploaded: {metadata['upload_time'].strftime('%d/%m/%Y %H:%M')}" />
     <meta property="og:image" content="{file_url if is_image else '/static/file-preview.png'}" />
     <meta property="og:url" content="{file_url}" />
     <meta property="og:type" content="website" />
@@ -129,7 +129,7 @@ Uploaded: {metadata['upload_time'].strftime('%Y-%m-%d %H:%M:%S')}" />
 
 @app.get("/")
 async def index(request: Request):
-    return JSONResponse({"message": "Hello, World!"})
+    return JSONResponse({"status": "🐱"})
 
 
 @app.post("/upload/chunk")
@@ -140,8 +140,8 @@ async def upload_chunk(
     totalChunks: int = Form(...)
 ):
     file_ext = Path(fileName).suffix.lower()
-    if file_ext not in ALLOWED_EXTENSIONS:
-        raise HTTPException(status_code=400, detail="File type not allowed")
+    # if file_ext not in ALLOWED_EXTENSIONS:
+    #     raise HTTPException(status_code=400, detail="File type not allowed")
 
     file_id = generate_short_id() if chunkIndex == 0 else next(
         (k for k, v in chunk_tracking.items() if fileName in str(v)), None)
@@ -226,10 +226,7 @@ async def get_file(file_id: str, request: Request):
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
 
-    # Check if it's a direct file request (for preview or download)
-    if request.headers.get('accept', '').startswith('image/') or \
-       request.headers.get('accept', '').startswith('video/') or \
-       request.query_params.get('raw') == 'true':
+    if request.headers.get('accept', '').startswith('image/') or request.headers.get('accept', '').startswith('video/') or request.query_params.get('raw') == 'true':
         return FileResponse(
             file_path,
             media_type=metadata['mime_type'],
@@ -523,4 +520,5 @@ async def cleanup_expired_files():
             await asyncio.sleep(3600)
         except Exception as e:
             print(f"Error in cleanup task: {e}")
+            await asyncio.sleep(3600)
             await asyncio.sleep(3600)
