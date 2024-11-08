@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 import json
@@ -129,7 +129,7 @@ Uploaded: {metadata['upload_time'].strftime('%Y-%m-%d %H:%M:%S')}" />
 
 @app.get("/")
 async def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return JSONResponse({"message": "Hello, World!"})
 
 
 @app.post("/upload/chunk")
