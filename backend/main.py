@@ -198,7 +198,7 @@ async def complete_upload(request: CompleteUploadRequest):
         'mime_type': mime_type,
         'size': file_size,
         'human_size': humanize.naturalsize(file_size),
-        'upload_time': datetime.now(),
+        'upload_time': datetime.now().strftime('%H:%M %d/%m/%Y'),
         'expiry_time': datetime.now() + timedelta(hours=24),
         'extension': file_ext
     }
